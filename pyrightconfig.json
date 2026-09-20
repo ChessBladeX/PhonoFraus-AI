@@ -1,0 +1,10 @@
+{
+  "include": [
+    "server",
+    "photoFrausAI"
+  ],
+  "extraPaths": [
+    "photoFrausAI",
+    "server"
+  ]
+}

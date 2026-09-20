@@ -1,0 +1,1 @@
+# PhotoFraus AI Core Package

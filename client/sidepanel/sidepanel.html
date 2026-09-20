@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoFraus AI Inspector</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#00F0FF" />
+            <circle cx="12" cy="11" r="3" stroke="#00FF88" />
+            <line x1="12" y1="2" x2="12" y2="4" stroke="#00F0FF" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>PhotoFraus AI</h1>
+          <span class="version-tag">v1.0</span>
+        </div>
+      </div>
+      <div class="backend-status" id="backend-status" title="FastAPI Backend Health">
+        <span class="status-dot"></span>
+        <span class="status-label" id="backend-status-text">CONNECTING</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- State 1: Empty / Prompt State -->
+      <section class="state-container" id="empty-state">
+        <div class="empty-card">
+          <div class="empty-radar-icon">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="9" stroke="#30363D" />
+              <circle cx="12" cy="12" r="5" stroke="#00F0FF" stroke-dasharray="4 2" />
+              <circle cx="12" cy="12" r="2" fill="#00FF88" />
+              <line x1="12" y1="3" x2="12" y2="7" stroke="#00F0FF" />
+              <line x1="12" y1="17" x2="12" y2="21" stroke="#00F0FF" />
+              <line x1="3" y1="12" x2="7" y2="12" stroke="#00F0FF" />
+              <line x1="17" y1="12" x2="21" y2="12" stroke="#00F0FF" />
+            </svg>
+          </div>
+          <h2>Ready to Inspect</h2>
+          <p>Right-click any web image and choose <strong>"Inspect Image with PhotoFraus AI"</strong>, or paste an image URL below.</p>
+
+          <form class="url-input-form" id="manual-url-form">
+            <input 
+              type="url" 
+              id="manual-url-input" 
+              placeholder="https://example.com/image.jpg" 
+              required 
+            />
+            <button type="submit" id="btn-analyze-url">Scan</button>
+          </form>
+
+          <div class="sample-actions">
+            <span class="sample-label">Quick Test Samples:</span>
+            <div class="sample-buttons">
+              <button type="button" class="btn-sample" data-sample="ai">Synthetic Sample</button>
+              <button type="button" class="btn-sample" data-sample="real">Authentic Sample</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- State 2: Skeleton / Shimmer Loading State -->
+      <section class="state-container hidden" id="loading-state">
+        <div class="skeleton-preview shimmer"></div>
+        <div class="skeleton-card shimmer">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line long"></div>
+          <div class="skeleton-bar"></div>
+        </div>
+        <div class="skeleton-card shimmer">
+          <div class="skeleton-line full"></div>
+          <div class="skeleton-line full"></div>
+          <div class="skeleton-line half"></div>
+        </div>
+        <div class="loading-label">
+          <span class="spinner-small"></span>
+          <span>Forward pass through neural classifier...</span>
+        </div>
+      </section>
+
+      <!-- State 3: Error State -->
+      <section class="state-container hidden" id="error-state">
+        <div class="error-card">
+          <div class="error-icon">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#F85149" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <h3 id="error-title">Inference Interrupted</h3>
+          <p id="error-message">Backend server unreachable.</p>
+
+          <div class="troubleshoot-box" id="troubleshoot-box">
+            <div class="troubleshoot-header">Troubleshooting Steps:</div>
+            <ol>
+              <li>Ensure FastAPI backend is running on <code>http://localhost:8000</code>.</li>
+              <li>Check CORS settings or network firewalls.</li>
+              <li>Verify the image link is publicly accessible and not behind authentication.</li>
+            </ol>
+          </div>
+
+          <div class="error-actions">
+            <button class="btn-secondary" id="btn-retry">Retry Scan</button>
+            <button class="btn-secondary" id="btn-demo-mode">Load Demo Diagnostic</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- State 4: Complete Analysis State -->
+      <section class="state-container hidden" id="analysis-state">
+        <!-- 1. Image Preview Section -->
+        <div class="card preview-card">
+          <div class="preview-container">
+            <img id="preview-img" src="" alt="Inspected Image Preview" />
+            <div class="preview-badges">
+              <span class="preview-badge" id="preview-res">-- x --</span>
+              <span class="preview-badge" id="preview-latency">-- ms</span>
+            </div>
+          </div>
+          <div class="preview-caption">
+            <span class="url-truncated" id="preview-url">image-url</span>
+            <button class="btn-icon" id="btn-copy-url" title="Copy Image URL">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Verdict Banner Card -->
+        <div class="card verdict-card" id="verdict-card">
+          <div class="verdict-header">
+            <span class="verdict-tag" id="verdict-status-tag">ANALYSIS COMPLETE</span>
+            <div class="verdict-time" id="verdict-time">Just now</div>
+          </div>
+          
+          <div class="verdict-body">
+            <div class="verdict-icon" id="verdict-icon">
+              <!-- Rendered via JS -->
+            </div>
+            <div class="verdict-summary">
+              <h2 class="verdict-title" id="verdict-title">LIKELY AI GENERATED</h2>
+              <div class="confidence-display">
+                <span class="confidence-label">Confidence:</span>
+                <span class="confidence-value" id="confidence-value">0.0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Score Bar -->
+          <div class="score-bar-container">
+            <div class="score-bar-track">
+              <div class="score-bar-fill" id="score-bar-fill" style="width: 0%;"></div>
+            </div>
+            <div class="score-bar-ticks">
+              <span>0% REAL</span>
+              <span>50%</span>
+              <span>100% AI</span>
+            </div>
+          </div>
+
+          <!-- Radar Sub-metrics -->
+          <div class="radar-breakdown">
+            <div class="radar-item">
+              <div class="radar-label">
+                <span>AI Probability</span>
+                <span id="radar-ai-pct">0%</span>
+              </div>
+              <div class="radar-track">
+                <div class="radar-fill ai" id="radar-ai-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div class="radar-item">
+              <div class="radar-label">
+                <span>Authentic Real</span>
+                <span id="radar-real-pct">0%</span>
+              </div>
+              <div class="radar-track">
+                <div class="radar-fill real" id="radar-real-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Metadata & Forensic Signals Card -->
+        <div class="card signals-card">
+          <div class="card-title">Metadata & Forensic Signals</div>
+          <div class="signals-list">
+            <div class="signal-row">
+              <span class="signal-name">C2PA Signature</span>
+              <span class="signal-pill neutral" id="signal-c2pa">Not Detected</span>
+            </div>
+            <div class="signal-row">
+              <span class="signal-name">High-Freq Noise Anomaly</span>
+              <span class="signal-pill" id="signal-noise">Analyzing...</span>
+            </div>
+            <div class="signal-row">
+              <span class="signal-name">Image Dimensions</span>
+              <span class="signal-val" id="signal-dim">--</span>
+            </div>
+            <div class="signal-row">
+              <span class="signal-name">Generation Software</span>
+              <span class="signal-val" id="signal-software">Clean / None</span>
+            </div>
+            <div class="signal-row">
+              <span class="signal-name">Inference Latency</span>
+              <span class="signal-val" id="signal-latency">-- ms</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Action Controls -->
+        <div class="action-footer">
+          <button class="btn-action btn-rescan" id="btn-rescan">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M1.705 8.001a6.3 6.3 0 0 1 10.37-4.757l.13.12-1.455 1.456a.75.75 0 0 0 .53 1.28h4.22a.75.75 0 0 0 .75-.75V1.13a.75.75 0 0 0-1.28-.53l-1.42 1.42A7.8 7.8 0 0 0 0 8.001a.75.75 0 0 0 1.5 0c.102 0 .103 0 .205 0Zm12.59 0a6.3 6.3 0 0 1-10.37 4.757l-.13-.12 1.455-1.456a.75.75 0 0 0-.53-1.28H.5a.75.75 0 0 0-.75.75v4.22a.75.75 0 0 0 1.28.53l1.42-1.42A7.8 7.8 0 0 0 16 8.001a.75.75 0 0 0-1.5 0c-.102 0-.103 0-.205 0Z"></path>
+            </svg>
+            Re-scan
+          </button>
+          <button class="btn-action btn-copy-json" id="btn-copy-json">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+              <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+            </svg>
+            Copy Raw JSON
+          </button>
+        </div>
+
+        <!-- Toast notification for copy confirmation -->
+        <div class="toast hidden" id="toast">Copied to clipboard!</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
