@@ -60,6 +60,11 @@ class InferenceEngine:
             self.model = create_detector_model(backbone="resnet18", num_classes=2, pretrained=False)
             self.model.load_state_dict(checkpoint)
 
+        # Free checkpoint dictionary and optimizer states from memory
+        del checkpoint
+        import gc
+        gc.collect()
+
         self.model.to(self.device)
         self.model.eval()
 
