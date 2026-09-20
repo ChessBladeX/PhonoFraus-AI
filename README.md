@@ -131,9 +131,22 @@ pip install -r server/requirements.txt
 
 ---
 
+## 🌐 Live Hosted API
+
+The inference API is hosted live on Render:
+- **Production URL**: `https://phonofraus-ai.onrender.com/`
+- **Health Check**: `https://phonofraus-ai.onrender.com/health`
+- **Predict Endpoint**: `POST https://phonofraus-ai.onrender.com/predict`
+
+The browser extension in `client/` is configured to automatically use this hosted endpoint by default (with seamless automatic fallback to `localhost:8000` when running locally).
+
+---
+
 ## 🚀 Running the System
 
-### 1. Start the Inference Server
+### 1. Run the Inference Server Locally (Optional)
+
+If you prefer to run the backend locally on your own GPU:
 
 From the project root:
 

@@ -3,7 +3,11 @@
  * Manages context menus, side panel coordination, API inference proxying, and state persistence.
  */
 
-const BACKEND_URLS = ["http://127.0.0.1:8000", "http://localhost:8000"];
+const BACKEND_URLS = [
+  "https://phonofraus-ai.onrender.com",
+  "http://127.0.0.1:8000",
+  "http://localhost:8000"
+];
 
 async function fetchFromBackend(endpoint, options = {}) {
   let lastError = null;
@@ -200,7 +204,7 @@ async function performInspection(imageUrl, tabId) {
     if (error.name === "AbortError") {
       humanReadableError = "Inference Timed Out (>7s): Image stream download or model pass exceeded threshold.";
     } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-      humanReadableError = "Backend Offline: FastAPI server not reachable at http://localhost:8000.";
+      humanReadableError = "Backend Offline: FastAPI server not reachable at https://phonofraus-ai.onrender.com or localhost.";
     }
 
     const errorState = {

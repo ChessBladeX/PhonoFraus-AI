@@ -204,7 +204,7 @@
         if (chrome.runtime.lastError || !response || !response.online) {
           backendStatusEl.className = "backend-status offline";
           backendStatusText.textContent = "OFFLINE";
-          backendStatusEl.title = "FastAPI backend is offline (http://localhost:8000)";
+          backendStatusEl.title = "FastAPI backend is offline (https://phonofraus-ai.onrender.com or localhost)";
         } else {
           backendStatusEl.className = "backend-status online";
           backendStatusText.textContent = "ONLINE";
